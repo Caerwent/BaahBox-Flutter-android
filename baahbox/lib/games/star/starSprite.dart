@@ -24,6 +24,7 @@ import 'package:baahbox/controllers/appController.dart';
 import 'package:get/get.dart';
 
 
+
 class StarSprite extends SpriteComponent with HasGameRef<StarGame> {
   final Controller appController = Get.find();
   StarSprite() : super(size: Vector2.all(16.0), anchor: Anchor.center);
@@ -31,6 +32,7 @@ class StarSprite extends SpriteComponent with HasGameRef<StarGame> {
   final starSprite = Sprite(Flame.images.fromCache('Games/Star/game_star.png'));
   final shiningStarSprite =
       Sprite(Flame.images.fromCache('Games/Star/game_star_shining.png'));
+
 
   @override
   Future<void> onLoad() async {
@@ -58,7 +60,7 @@ class StarSprite extends SpriteComponent with HasGameRef<StarGame> {
   @override
   void update(double dt) {
     super.update(dt);
-    if (gameRef.input >= 750) {
+    if (gameRef.input >= 0.75) {
       setTo(shiningStarSprite);
     } else {
       setTo(starSprite);

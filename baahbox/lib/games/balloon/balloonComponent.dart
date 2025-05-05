@@ -35,6 +35,7 @@ class BalloonComponent extends SpriteComponent with HasGameRef<BalloonGame> {
   final balloonexplodeSprite =
       Sprite(Flame.images.fromCache('Games/Balloon/ballon_04@2x.png'));
 
+
   @override
   Future<void> onLoad() async {
     super.onLoad();
@@ -56,7 +57,7 @@ class BalloonComponent extends SpriteComponent with HasGameRef<BalloonGame> {
   }
 
   updateSprite(double dt) {
-    int coeff = (gameRef.input / 100).toInt();
+    int coeff = (gameRef.input *10).toInt();
     switch (coeff) {
       case 0 || 1:
         setTo(balloonstartSprite, 0);
@@ -67,14 +68,14 @@ class BalloonComponent extends SpriteComponent with HasGameRef<BalloonGame> {
     }
   }
 
-  setTo(Sprite newSprite, int coeff) {
+  setTo(Sprite newSprite, double coeff) {
     if (this.sprite != newSprite) {
       this.sprite = newSprite;
       final newSize = newSprite.srcSize;
       this.size = newSize / 4;
     } else if (coeff > 0) {
       var newSize = this.sprite?.srcSize ?? Vector2(400, 600);
-      this.size = newSize * (coeff / 1000).toDouble();
+      this.size = newSize * coeff;
     }
   }
 }

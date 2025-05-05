@@ -27,19 +27,19 @@ import 'package:baahbox/games/spaceShip/components/meteorComponent.dart';
 import 'package:baahbox/services/settings/settingsController.dart';
 
 
-class MeteorManager extends TimerComponent with HasGameRef<SpaceShipGame> {
+class MeteorManager extends TimerComponent with HasGameReference<SpaceShipGame> {
   final Random random = Random();
   final meteor1Sprite =
       Sprite(Flame.images.fromCache('Games/Spaceship/meteor_01@3x.png'));
 
-  MeteorManager() : super(period: 3, repeat: true);
+  MeteorManager() : super(period: 4, repeat: true);
 
 
   @override
   void onTick() {
-     if (gameRef.appController.isActive && !gameRef.isGameOver) {
+     if (game.appController.isActive && !game.isGameOver) {
       final _halfWidth = meteor1Sprite.originalSize.x / 10;
-      final accelerationRate = gameRef.settingsController.spaceShipSettings["asteroidVelocity"].value/2;
+      final accelerationRate = game.settingsController.spaceShipSettings["asteroidVelocity"].value/2;
 
       game.addAll(
         List.generate(
@@ -59,7 +59,7 @@ class MeteorManager extends TimerComponent with HasGameRef<SpaceShipGame> {
   }
 
   void clearTheSky() {
-    for (var child in gameRef.children) {
+    for (var child in game.children) {
       if (child is MeteorComponent) {
         child.removeFromParent();
       }

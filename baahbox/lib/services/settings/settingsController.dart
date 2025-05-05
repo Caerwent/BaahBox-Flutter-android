@@ -37,6 +37,8 @@ class SettingsController extends GetxController {
     "demoMode": false,
     "isSensor1On": true,
     "isSensor2On": false,
+    "analogInputRangeForHandleLower": 10,
+    "analogInputRangeForHandleUpper":100
   }.obs;
 
   var _sheepSettings = <String, Object>{
@@ -106,6 +108,28 @@ class SettingsController extends GetxController {
 
   void setMuscle2To(bool mu2) {
     _genericSettings["isSensor2On"] = mu2;
+  }
+
+  void setHandleRangeLower(int val) {
+    if(val>0 && val <=180)
+      {
+        _genericSettings["analogInputRangeForHandleLower"] = val;
+      }
+
+  }
+
+  void setHandleRangeUpper(int val) {
+    if(val>0 && val <=180)
+    {
+      _genericSettings["analogInputRangeForHandleUpper"] = val;
+    }
+  }
+  int getHandleRangeLower() {
+    return (_genericSettings["analogInputRangeForHandleLower"] ?? 0) as int;
+  }
+
+  int getHandleRangeUpper() {
+    return (_genericSettings["analogInputRangeForHandleUpper"] ?? 0) as int;
   }
 
   void updateSensorTo(Sensor? sensor) {

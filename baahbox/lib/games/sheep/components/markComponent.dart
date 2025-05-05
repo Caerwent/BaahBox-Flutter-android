@@ -21,8 +21,7 @@ import 'package:flame/components.dart';
 import 'package:flame/effects.dart';
 import 'package:flame/flame.dart';
 
-class MarkComponent extends SpriteComponent
-    with HasGameRef {
+class MarkComponent extends SpriteComponent {
 
   MarkComponent({required Vector2 position})
       : super(

@@ -38,6 +38,8 @@ import 'package:baahbox/games/sheep/components/counterManager.dart';
 import 'package:baahbox/games/sheep/background/cloud_manager.dart';
 import 'package:baahbox/services/settings/settingsController.dart';
 
+import '../../model/GameInput.dart';
+
 class SheepGame extends BBGame with TapCallbacks, HasCollisionDetection {
   final Controller appController = Get.find();
   final SettingsController settingsController = Get.find();
@@ -60,9 +62,8 @@ class SheepGame extends BBGame with TapCallbacks, HasCollisionDetection {
   bool sheepDidJumpOverGate = false;
   int strengthValue = 0;
   var gateVelocity = ObjectVelocity.low;
+  late GameInput gameInput;
 
-  int panInput = 0;
-  int input = 0;
   double floorY = 0;
   var instructionTitle = '';
   var instructionSubtitleMuscle = 'en contractant ton muscle';
@@ -131,7 +132,9 @@ class SheepGame extends BBGame with TapCallbacks, HasCollisionDetection {
     successfulJumps = 0;
     hasSheepStartedJumping = false;
     sheepDidJumpOverGate = false;
-    var params = settingsController.sheepSettings;
+    gameInput = GameInput(
+        axes: GameInputAxes.vertical,
+        directionType: GameInputDirectionType.digital);
     gameObjective = settingsController.sheepSettings["numberOfGates"];
     gateVelocity = settingsController.sheepSettings["gateVelocity"];
   }
@@ -214,7 +217,7 @@ class SheepGame extends BBGame with TapCallbacks, HasCollisionDetection {
           final jumpHeigth = floorY * (1 - (input / 100));
           sheep.moveTo(jumpHeigth);
         case Sensor.arcadeJoystick:
-          var joystickInput = appController.joystickInput;
+          var joystickInput = appController.digitalInputs;
           if (joystickInput.up) {
             sheep.moveTo(sheep.y - 3);
           } else if (joystickInput.down) {
@@ -236,11 +239,9 @@ class SheepGame extends BBGame with TapCallbacks, HasCollisionDetection {
     // todo deal with 2 muscles or joystick input
     if (appController.isConnectedToBox) {
       // The strength is in range [0...1024] -> Have it fit into [0...100]
-      input = (appController.musclesInput.muscle1 ~/ 10);
+      input = (appController.analogInput.analog1 ~/ 10);
       print("sheep: input= $input");
 
-    } else { // demo mode
-      input = panInput;
     }
   }
 
@@ -316,9 +317,7 @@ class SheepGame extends BBGame with TapCallbacks, HasCollisionDetection {
 
   @override
   void onPanUpdate(DragUpdateInfo info) {
-    if (appController.isConnectedToBox || state != GameState.running) {
-      panInput = 0;
-    } else {
+    if (!appController.isConnectedToBox && state == GameState.running) {
       var yPos = info.eventPosition.global.y;
       var nextY = min(yPos, floorY);
       sheep.moveTo(nextY);

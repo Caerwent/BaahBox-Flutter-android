@@ -27,8 +27,8 @@ class Controller extends FullLifeCycleController with FullLifeCycleMixin {
   static Controller get to => Get.find();
   final GetxBle bleController = Get.find();
 
-  var _musclesInput = MusclesInput(0, 0).obs;
-  var _joystickInput = JoystickInput(0).obs;
+  var _analogInput = AnalogInputs(0, 0).obs;
+  var digitalInput = DigitalInputs(0).obs;
   var _isConnectedToBox = false.obs;
   var _connectedDeviceName = "".obs;
   var _connectedDeviceId = "".obs;
@@ -40,8 +40,8 @@ class Controller extends FullLifeCycleController with FullLifeCycleMixin {
   // getters
   String get connectedDeviceName=> _connectedDeviceName.value;
   String get connectedDeviceId => _connectedDeviceId.value;
-  MusclesInput get musclesInput => _musclesInput.value;
-  JoystickInput get joystickInput => _joystickInput.value;
+  AnalogInputs get analogInput => _analogInput.value;
+  DigitalInputs get digitalInputs => digitalInput.value;
   bool get isConnectedToBox => _isConnectedToBox.value;
   bool get isActive => _isActive.value;
   bool get isDebugging => _isDebugging.value;
@@ -74,12 +74,12 @@ class Controller extends FullLifeCycleController with FullLifeCycleMixin {
     _isActive.value = activate;
   }
 
-  void setMusclesTo(MusclesInput mi) {
-    _musclesInput.value = mi;
+  void setMusclesTo(AnalogInputs mi) {
+    _analogInput.value = mi;
   }
 
-  void setJoystickTo(JoystickInput ji) {
-    _joystickInput.value = ji;
+  void setJoystickTo(DigitalInputs ji) {
+    digitalInput.value = ji;
   }
 
 @override

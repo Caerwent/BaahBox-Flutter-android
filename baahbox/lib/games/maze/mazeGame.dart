@@ -20,6 +20,7 @@
 import 'dart:math';
 import 'dart:ui';
 
+import 'package:baahbox/model/GameInput.dart';
 import 'package:flame/components.dart';
 import 'package:flame/events.dart';
 import 'package:baahbox/games/BBGame.dart';
@@ -71,6 +72,8 @@ class MazeGame extends BBGame with TapCallbacks, HasCollisionDetection {
   late final MazeLifeManager lifeManager;
   late final MazeWinComponent winComponent;
 
+  late GameInput gameInput;
+
   double elapsedTime = 0.0;
 
   // Loading Game
@@ -86,14 +89,6 @@ class MazeGame extends BBGame with TapCallbacks, HasCollisionDetection {
   }
 
   void loadComponents() async {
-    if (!appController.isConnectedToBox) {
-      joyStickKnobPaint = Paint()
-        ..color = BBColor.pinky.color.withAlpha(200)
-        ..style = PaintingStyle.fill;
-      joyStickBackgroundPaint = Paint()
-        ..color = BBColor.greyGreen.color.withAlpha(200)
-        ..style = PaintingStyle.fill;
-    }
 
     durationText = TextComponent(
       position: Vector2(size.x - 5, 10),
@@ -101,6 +96,26 @@ class MazeGame extends BBGame with TapCallbacks, HasCollisionDetection {
       priority: 1,
     );
     add(durationText);
+
+    joyStickKnobPaint = Paint()
+      ..color = BBColor.pinky.color.withAlpha(200)
+      ..style = PaintingStyle.fill;
+    joyStickBackgroundPaint = Paint()
+      ..color = BBColor.greyGreen.color.withAlpha(200)
+      ..style = PaintingStyle.fill;
+
+    var radius = size.y / 4;
+    if (radius > 30 || radius < 10) {
+      radius = 20;
+    }
+    joystick = JoystickComponent(
+      anchor: Anchor.bottomCenter,
+      knob: CircleComponent(radius: radius, paint: joyStickKnobPaint),
+      background:
+      CircleComponent(radius: radius * 3, paint: joyStickBackgroundPaint),
+      margin: const EdgeInsets.only(left: 40, bottom: 40),
+    );
+
 
     createMazeAndPlayer();
 
@@ -112,20 +127,7 @@ class MazeGame extends BBGame with TapCallbacks, HasCollisionDetection {
   }
 
   void createMazeAndPlayer() {
-    if (!appController.isConnectedToBox) {
-      var radius = size.y / 4;
-      if (radius > 30 || radius < 10) {
-        radius = 20;
-      }
-      joystick = JoystickComponent(
-        anchor: Anchor.bottomCenter,
-        knob: CircleComponent(radius: radius, paint: joyStickKnobPaint),
-        background:
-            CircleComponent(radius: radius * 3, paint: joyStickBackgroundPaint),
-        margin: const EdgeInsets.only(left: 40, bottom: 40),
-      );
-      add(joystick);
-    }
+
     //var mazeSize = min(size.x, size.y- durationText.size.y-10);
     var isVertical = (size.y - 10) >= size.x;
     var mazeSize = isVertical ? size.x : (size.y - 10);
@@ -186,21 +188,30 @@ class MazeGame extends BBGame with TapCallbacks, HasCollisionDetection {
 
   // Box input
   void refreshInput() {
-    if (appController.isConnectedToBox &&
-        settingsController.currentSensor == Sensor.arcadeJoystick) {
-      var joystickInput = appController.joystickInput;
-      if (joystickInput.right) {
-        player.state = MovingState.right;
-      } else if (joystickInput.left) {
-        player.state = MovingState.left;
-      } else if (joystickInput.up) {
-        player.state = MovingState.up;
-      } else if (joystickInput.down) {
-        player.state = MovingState.down;
+    if (settingsController.mazeSettings["isFineDirection"]) {
+      if (appController.isConnectedToBox) {
+        player.moveDelta(gameInput.delta);
+      } else {
+        player.moveDelta(joystick.relativeDelta);
       }
     } else {
-      if (settingsController.mazeSettings["isFineDirection"]) {
-        player.moveDelta(joystick.relativeDelta);
+      if (appController.isConnectedToBox) {
+        switch (gameInput.direction) {
+          case GameInputDirection.up:
+          case GameInputDirection.upLeft:
+          case GameInputDirection.upRight:
+            player.state = MovingState.up;
+          case GameInputDirection.right:
+            player.state = MovingState.right;
+          case GameInputDirection.down:
+          case GameInputDirection.downRight:
+          case GameInputDirection.downLeft:
+            player.state = MovingState.down;
+          case GameInputDirection.left:
+            player.state = MovingState.left;
+          case GameInputDirection.idle:
+            player.state = MovingState.none;
+        }
       } else {
         var deltaX = joystick.relativeDelta.x;
         var deltaY = joystick.relativeDelta.y;
@@ -216,18 +227,6 @@ class MazeGame extends BBGame with TapCallbacks, HasCollisionDetection {
         } else {
           player.state = MovingState.none;
         }
-        /* switch(joystick.direction)
-            {
-              case JoystickDirection.idle:
-        case JoystickDirection.up: player.state = MovingState.up; break;
-        case JoystickDirection.down:player.state = MovingState.down; break;
-        case JoystickDirection.left:player.state = MovingState.up; break;
-        case JoystickDirection.right:player.state = MovingState.up; break;
-        case JoystickDirection.upLeft:player.state = MovingState.up; break;
-        case JoystickDirection.downLeft:player.state = MovingState.up; break;
-        case JoystickDirection.upRight:player.state = MovingState.up; break;
-        case JoystickDirection.downRight:player.state = MovingState.up; break;
-      }*/
       }
     }
   }
@@ -247,6 +246,21 @@ class MazeGame extends BBGame with TapCallbacks, HasCollisionDetection {
 // Game State management
   @override
   void startGame() {
+    if (!appController.isConnectedToBox) {
+      if(!children.contains(joystick)) {
+        add(joystick);
+      }
+    } else {
+      if(children.contains(joystick)) {
+        remove(joystick);
+      }
+      gameInput = GameInput(
+          axes: GameInputAxes.both,
+          directionType: settingsController.mazeSettings["isFineDirection"]
+              ? GameInputDirectionType.analogic
+              : GameInputDirectionType.digital);
+    }
+
     winComponent.hide();
     if (settingsController.mazeSettings["hasMaxTouch"]) {
       lifeManager.createLifes();
